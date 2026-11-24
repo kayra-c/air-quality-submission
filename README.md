@@ -8,7 +8,7 @@ Proyek analisis data kualitas udara dari 12 stasiun pemantauan (periode Maret 20
 
 ## Struktur Proyek
 * `notebook.ipynb` — Berisi tahapan *Data Wrangling* (*Gathering*, *Assessing*, *Cleaning*), *Exploratory Data Analysis (EDA)*, *Visualization & Explanatory Analysis*, serta *Conclusion & Recommendation*.
-* `clean_air_quality.csv` — Dataset hasil pembersihan (411.813 baris observasi dengan kolom `datetime`, `station`, `month`, `hour`, `PM2.5`, `PM10`, serta variabel pendukung).
+* `main_data` — Dataset hasil pembersihan (411.813 baris observasi dengan kolom `datetime`, `station`, `month`, `hour`, `PM2.5`, `PM10`, serta variabel pendukung).
 * `dashboard.py` — Aplikasi *dashboard* Streamlit interaktif dengan filter stasiun dan rentang tanggal, metrik ringkas, *barplot* rata-rata `PM2.5` per stasiun, serta grafik tren `PM2.5` dan `PM10` per bulan dan per jam.
 * `requirements.txt` — Daftar *package* Python yang dibutuhkan untuk menjalankan *dashboard*.
 

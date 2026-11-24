@@ -13,11 +13,18 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(BASE_DIR, "main_data.csv")
 
 
-@st.cache_data
 def load_data():
-  df = pd.read_csv(DATA_PATH)
-  df["datetime"] = pd.to_datetime(df["datetime"])
-  return df
+    for enc in ("utf-8", "utf-8-sig", "latin1", "cp1252"):
+        try:
+            df = pd.read_csv(DATA_PATH, encoding=enc)
+            break
+        except UnicodeDecodeError:
+            continue
+    else:
+        df = pd.read_csv(DATA_PATH, encoding="latin1", encoding_errors="replace")
+
+    df["datetime"] = pd.to_datetime(df["datetime"])
+    return df
 
 
 df = load_data()

@@ -13,8 +13,8 @@ st.set_page_config(
 
 sns.set_theme(style="whitegrid")
 
-# Sesuaikan nama file .zip jika berbeda di repository GitHub
-DATA_PATH = Path(__file__).parent / "main_data.csv.zip"
+# Sesuai nama file ZIP di repository GitHub: main_data.zip
+DATA_PATH = Path(__file__).parent / "main_data.zip"
 
 
 def _read_csv_with_fallback(file_obj):
@@ -24,7 +24,7 @@ def _read_csv_with_fallback(file_obj):
             return pd.read_csv(file_obj, encoding=enc)
         except UnicodeDecodeError:
             continue
-    raise ValueError("Gagal membaca file CSV di dalam arsip ZIP dengan encoding yang didukung.")
+    raise ValueError("Gagal membaca file CSV di dalam main_data.zip dengan encoding yang didukung.")
 
 
 @st.cache_data
@@ -38,7 +38,7 @@ def load_data():
             if name.lower().endswith(".csv") and not name.startswith("__MACOSX")
         ]
         if not csv_files:
-            raise FileNotFoundError("Tidak ditemukan file .csv di dalam arsip ZIP.")
+            raise FileNotFoundError("Tidak ditemukan file .csv di dalam main_data.zip.")
 
         with zf.open(csv_files[0], "r") as f:
             df = _read_csv_with_fallback(f)
@@ -91,9 +91,14 @@ if isinstance(date_range, tuple) and len(date_range) == 2:
 else:
     start_date = end_date = date_range if not isinstance(date_range, tuple) else date_range[0]
 
+pollutant_options = [col for col in ["PM2.5", "PM10", "SO2", "NO2", "CO", "O3"] if col in df.columns]
+if not pollutant_options:
+    st.error("Kolom polutan yang didukung (PM2.5, PM10, SO2, NO2, CO, O3) tidak ditemukan pada dataset.")
+    st.stop()
+
 pollutant = st.sidebar.selectbox(
     "Pilih Polutan Utama",
-    options=[col for col in ["PM2.5", "PM10", "SO2", "NO2", "CO", "O3"] if col in df.columns],
+    options=pollutant_options,
     index=0
 )
 

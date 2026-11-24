@@ -49,13 +49,39 @@ def load_data():
         if df.empty and last_error is not None:
             raise last_error
 
-    df["datetime"] = pd.to_datetime(df["datetime"], errors="coerce")
+    # Rapikan nama kolom (hilangkan spasi berlebih)
+    df.columns = df.columns.str.strip()
+
+    # Cari kolom waktu yang tersedia atau susun dari year/month/day/hour
+    candidate_cols = ["datetime", "date", "dteday", "timestamp", "time"]
+    found_col = next((c for c in candidate_cols if c in df.columns), None)
+
+    if found_col is not None:
+        df["datetime"] = pd.to_datetime(df[found_col], errors="coerce")
+    elif {"year", "month", "day"}.issubset(df.columns):
+        time_parts = {
+            "year": df["year"],
+            "month": df["month"],
+            "day": df["day"],
+        }
+        if "hour" in df.columns:
+            time_parts["hour"] = df["hour"]
+        df["datetime"] = pd.to_datetime(time_parts, errors="coerce")
+    else:
+        raise KeyError(
+            f"Kolom waktu tidak ditemukan. Kolom yang tersedia: {list(df.columns)}"
+        )
+
     df = df.dropna(subset=["datetime"])
 
     if "month" not in df.columns:
         df["month"] = df["datetime"].dt.month
     if "hour" not in df.columns:
         df["hour"] = df["datetime"].dt.hour
+
+    for col in ("PM2.5", "PM10"):
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
 
     return df
 
@@ -80,7 +106,7 @@ date_range = st.sidebar.date_input(
     max_value=max_date,
 )
 
-filtered_df = df[df["station"].isin(selected_stations)].copy()
+filtered_df = df[df["station"].astype(str).isin(selected_stations)].copy()
 if isinstance(date_range, tuple) and len(date_range) == 2:
     start_dt = pd.to_datetime(date_range[0])
     end_dt = pd.to_datetime(date_range[1]) + pd.Timedelta(days=1)
@@ -95,7 +121,9 @@ st.caption(
 )
 
 if filtered_df.empty:
-    st.warning("Tidak ada data yang sesuai dengan filter stasiun atau rentang tanggal yang dipilih.")
+    st.warning(
+        "Tidak ada data yang sesuai dengan filter stasiun atau rentang tanggal yang dipilih."
+    )
     st.stop()
 
 col1, col2, col3 = st.columns(3)
